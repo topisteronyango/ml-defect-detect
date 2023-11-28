@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Defect Detection Result</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        img {
+            max-width: 80%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Defect Detection Result</h1>
+        <img src="{{ url_for('static', filename='uploads/' + image_name) }}" alt="Uploaded Image">
+        <p>{{ result }}</p>
+
+        <a href="/">Upload Another Image</a>
+
+    </div>
+
+    
+</body>
+</html>
