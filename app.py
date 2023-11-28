@@ -3,11 +3,15 @@ import os
 import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
+from keras.models import load_model
+
+custom_objects = {'Custom>Adam': custom_adam}  
+
 
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 # Load the saved model
-loaded_model = load_model('defect_detection_model.h5')
+loaded_model = load_model('defect_detection_model.h5', custom_objects=custom_objects)
 
 # Define the path to the uploaded images folder
 UPLOAD_FOLDER = 'static/uploads'
