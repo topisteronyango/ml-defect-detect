@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 # Load the saved model
 loaded_model = load_model('defect_detection_model.h5')
