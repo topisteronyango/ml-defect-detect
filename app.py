@@ -1,24 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for
+import streamlit as st
 from werkzeug.utils import secure_filename
 import os
 
-from keras.models import load_model
-import numpy as np
-import matplotlib.pyplot as plt
 import cv2
+import numpy as np
+from keras.models import load_model
 
-app = Flask(__name__)
+
+# Load the saved model
+# loaded_model = None  # Load your model here (ensure it's accessible)
+loaded_model = load_model('defect_detection_model.h5')
 
 # Define the path to the uploaded images folder
 UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Create the 'uploads' directory if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-
-# Load the saved model
-loaded_model = load_model('defect_detection_model.h5')
 
 # Function to detect defects
 def detect_defect(image_path):
@@ -38,54 +34,17 @@ def detect_defect(image_path):
 
     return result
 
-# Route to the main page
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Streamlit app code
+st.title('Defect Detection')
 
-# Route to handle file upload
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if request.method == 'POST':
-        # Check if the post request has the file part
-        if 'file' not in request.files:
-            return render_template('index.html', message='No file part')
+uploaded_file = st.file_uploader("Upload an image", type=['png', 'jpg', 'jpeg', 'bmp'])
 
-        file = request.files['file']
-
-        # If the user does not select a file, browser also
-        # submits an empty part without filename
-        if file.filename == '':
-            return render_template('index.html', message='No selected file')
-        
-
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            detection_result = detect_defect(image_path)
-            return render_template('result.html', image_name=filename, result=detection_result)
-
-        # if file:
-        #     filename = secure_filename(file.filename)
-        #     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #     image_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        #     detection_result = detect_defect(image_filename)
-        #     return render_template('result.html', image_path=f'uploads/{filename}', result=detection_result)
-
-        # if file:
-        #     filename = secure_filename(file.filename)
-        #     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #     image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        #     detection_result = detect_defect(image_path)
-        #     return render_template('result.html', image_path=image_path, result=detection_result)
+if uploaded_file is not None:
     
-    # if file:
-    #     filename = secure_filename(file.filename)
-    #     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    #     image_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    #     detection_result = detect_defect(image_filename)
-    #     return render_template('result.html', image_path=f'uploads/{filename}', result=detection_result)
+    file_location = os.path.join(UPLOAD_FOLDER, secure_filename(uploaded_file.name))
+    with open(file_location, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    detection_result = detect_defect(file_location)
+    st.write("Detection Result:", detection_result)
+    st.image(file_location, caption='Uploaded Image', use_column_width=True)
