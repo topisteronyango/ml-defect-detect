@@ -32,8 +32,10 @@ class CustomAdam:
 
             var -= self.learning_rate * m_hat / (v_hat**0.5 + self.epsilon)
 custom_adam = CustomAdam()
+custom_objects = {'CustomAdam': CustomAdam}
 
-custom_objects = {'Custom>Adam': custom_adam}  
+
+# custom_objects = {'Custom>Adam': custom_adam}  
 
 
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
