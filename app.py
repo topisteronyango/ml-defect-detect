@@ -2,7 +2,8 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
-from keras.models import load_model
+from tensorflow.keras.models import load_model
+
 
 # Load the saved model
 loaded_model = load_model('defect_detection_model.h5')
