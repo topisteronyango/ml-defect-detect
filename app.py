@@ -8,18 +8,61 @@ from tensorflow.keras.optimizers import Adam
 
 
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
-class CustomAdam(Adam):
-    def __init__(self, learning_rate=0.001, **kwargs):
-        super().__init__(learning_rate=learning_rate, **kwargs)
 
-# Create an instance of your custom optimizer
-custom_adam = CustomAdam()
+from tensorflow.keras.optimizers import Optimizer
+import tensorflow.keras.backend as K
+
+class CustomAdam(Optimizer):
+    def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-7, **kwargs):
+        super(CustomAdam, self).__init__(**kwargs)
+        self.learning_rate = learning_rate
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.epsilon = epsilon
+
+    def get_updates(self, loss, params):
+        grads = self.get_gradients(loss, params)
+        self.updates = [K.update_add(self.iterations, 1)]
+
+        lr = self.learning_rate
+        t = self.iterations + 1
+
+        lr_t = lr * (K.sqrt(1. - K.pow(self.beta2, t)) / (1. - K.pow(self.beta1, t)))
+
+        for p, g in zip(params, grads):
+            m = K.zeros(K.int_shape(p))
+            v = K.zeros(K.int_shape(p))
+
+            m_t = (self.beta1 * m) + (1. - self.beta1) * g
+            v_t = (self.beta2 * v) + (1. - self.beta2) * K.square(g)
+
+            p_t = p - lr_t * m_t / (K.sqrt(v_t) + self.epsilon)
+
+            self.updates.append(K.update(m, m_t))
+            self.updates.append(K.update(v, v_t))
+            self.updates.append(K.update(p, p_t))
+        return self.updates
+
+    def get_config(self):
+        config = {
+            'learning_rate': self.learning_rate,
+            'beta1': self.beta1,
+            'beta2': self.beta2,
+            'epsilon': self.epsilon,
+        }
+        base_config = super(CustomAdam, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+
 
 # Define the custom_objects dictionary for loading the model
-custom_objects = {'CustomAdam': custom_adam}
+# custom_objects = {'CustomAdam': custom_adam}
 
 # Load the model using load_model and pass the custom_objects
-loaded_model = load_model('./defect_detection_model.h5')
+loaded_model = load_model('defect_detection_model.h5', custom_objects={'CustomAdam': CustomAdam})
+
+# loaded_model = load_model('./defect_detection_model.h5')
 
 
 # Define the path to the uploaded images folder
