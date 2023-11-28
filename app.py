@@ -11,15 +11,11 @@ os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
 
 # Define a custom optimizer
 class CustomAdam(Adam):
-    def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-7):
-        super().__init__(learning_rate=learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon)
-        # You can add additional custom parameters or initialization here
+    def __init__(self, learning_rate=0.001, **kwargs):
+        super().__init__(learning_rate=learning_rate, **kwargs)
 
     def apply_gradients(self, grads_and_vars, name=None):
-        # Custom logic to apply gradients
-        # Override this method to define your custom optimization algorithm
-
-        # Example: Negate gradients
+        
         grads_and_vars = [(tf.negative(grad), var) for grad, var in grads_and_vars]
 
         return super().apply_gradients(grads_and_vars, name=name)
