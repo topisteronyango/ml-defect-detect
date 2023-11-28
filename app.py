@@ -5,6 +5,34 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from keras.models import load_model
 
+
+class CustomAdam:
+    def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-7):
+        self.learning_rate = learning_rate
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.epsilon = epsilon
+        self.m = None  # First moment estimates
+        self.v = None  # Second moment estimates
+        self.t = 0  # Timestamp
+
+    def optimize(self, gradients, variables):
+        if self.m is None:
+            self.m = [0] * len(variables)
+            self.v = [0] * len(variables)
+
+        self.t += 1
+
+        for i, (grad, var) in enumerate(zip(gradients, variables)):
+            self.m[i] = self.beta1 * self.m[i] + (1 - self.beta1) * grad
+            self.v[i] = self.beta2 * self.v[i] + (1 - self.beta2) * grad**2
+
+            m_hat = self.m[i] / (1 - self.beta1**self.t)
+            v_hat = self.v[i] / (1 - self.beta2**self.t)
+
+            var -= self.learning_rate * m_hat / (v_hat**0.5 + self.epsilon)
+custom_adam = CustomAdam()
+
 custom_objects = {'Custom>Adam': custom_adam}  
 
 
