@@ -1,26 +1,28 @@
-import streamlit as st
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.utils import secure_filename
 import os
-import cv2
-import numpy as np
-from tensorflow.keras.models import load_model
+
 from keras.models import load_model
- 
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
 
-
-os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
-
-# Load the saved model
-
-loaded_model = load_model('./defect_detection_model.h5')
-
+app = Flask(__name__)
 
 # Define the path to the uploaded images folder
 UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Create the 'uploads' directory if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# Load the saved model
+loaded_model = load_model('defect_detection_model.h5')
+
 # Function to detect defects
-def detect_defect(img):
+def detect_defect(image_path):
+    img = cv2.imread(image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB
     img = cv2.resize(img, (224, 224))  # Resize image if needed
     img = img / 255.0  # Normalize pixel values
@@ -36,20 +38,34 @@ def detect_defect(img):
 
     return result
 
-# Streamlit app code
-st.title('Defect Detection')
+# Route to the main page
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-uploaded_file = st.file_uploader("Upload an image", type=['png', 'jpg', 'jpeg', 'bmp'])
+# Route to handle file upload
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if request.method == 'POST':
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            return render_template('index.html', message='No file part')
 
-if uploaded_file is not None:
-    img = cv2.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), 1)
-    
-    if img is not None:
-        file_location = os.path.join(UPLOAD_FOLDER, uploaded_file.name)
-        cv2.imwrite(file_location, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+        file = request.files['file']
 
-        detection_result = detect_defect(img)
-        st.write("Detection Result:", detection_result)
-        st.image(file_location, caption='Uploaded Image', use_column_width=True)
-    else:
-        st.write("Invalid Image File. Please upload a valid image.")
+        # If the user does not select a file, browser also
+        # submits an empty part without filename
+        if file.filename == '':
+            return render_template('index.html', message='No selected file')
+        
+
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            detection_result = detect_defect(image_path)
+            return render_template('result.html', image_name=filename, result=detection_result)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
