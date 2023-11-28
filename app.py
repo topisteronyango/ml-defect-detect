@@ -8,22 +8,17 @@ from tensorflow.keras.optimizers import Adam
 
 
 os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
-
-# Define a custom optimizer
 class CustomAdam(Adam):
     def __init__(self, learning_rate=0.001, **kwargs):
         super().__init__(learning_rate=learning_rate, **kwargs)
 
-    def apply_gradients(self, grads_and_vars, name=None):
-        
-        grads_and_vars = [(tf.negative(grad), var) for grad, var in grads_and_vars]
-
-        return super().apply_gradients(grads_and_vars, name=name)
+# Create an instance of your custom optimizer
 custom_adam = CustomAdam()
 
-custom_objects = {'CustomAdam': CustomAdam}  # Provide the custom optimizer to custom_objects
+# Define the custom_objects dictionary for loading the model
+custom_objects = {'CustomAdam': custom_adam}
 
-# Load the saved model with custom_objects
+# Load the model using load_model and pass the custom_objects
 loaded_model = load_model('./defect_detection_model.h5', custom_objects=custom_objects)
 
 
