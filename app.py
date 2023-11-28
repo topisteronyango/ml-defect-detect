@@ -60,9 +60,9 @@ class CustomAdam(Optimizer):
 # custom_objects = {'CustomAdam': custom_adam}
 
 # Load the model using load_model and pass the custom_objects
-loaded_model = load_model('defect_detection_model.h5', custom_objects={'CustomAdam': CustomAdam})
+# loaded_model = load_model('defect_detection_model.h5', custom_objects={'CustomAdam': CustomAdam})
 
-# loaded_model = load_model('./defect_detection_model.h5')
+loaded_model = load_model('./defect_detection_model.h5', compile=False)
 
 
 # Define the path to the uploaded images folder
